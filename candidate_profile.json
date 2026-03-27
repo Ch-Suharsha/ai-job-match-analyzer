@@ -1,0 +1,23 @@
+{
+  "name": "Alex Rivera",
+  "title": "ML/Data Analyst",
+  "summary": "Entry-level data analyst and ML engineer with experience in Python, SQL, machine learning, statistical analysis, and data visualization. Passionate about building data-driven insights for AI-powered products.",
+  "skills": [
+    "Python", "SQL", "Pandas", "NumPy", "scikit-learn",
+    "Machine Learning", "Statistical Analysis", "A/B Testing",
+    "Data Visualization", "Streamlit", "Plotly", "Tableau",
+    "NLP", "Feature Engineering", "Logistic Regression",
+    "Random Forest", "XGBoost", "sentence-transformers",
+    "ETL Pipelines", "PostgreSQL", "MongoDB",
+    "FastAPI", "Docker", "Git", "Jupyter Notebooks",
+    "AI Agents", "LLMs", "Data Reporting"
+  ],
+  "experience_years": 1,
+  "education": "M.S. Applied Data Intelligence",
+  "preferred_roles": [
+    "Data Analyst", "ML Engineer", "AI Analyst",
+    "Machine Learning Analyst", "Data Scientist"
+  ],
+  "preferred_locations": ["Remote", "United States"],
+  "work_authorization": "US authorized"
+}
