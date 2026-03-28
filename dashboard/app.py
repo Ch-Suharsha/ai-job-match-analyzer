@@ -21,7 +21,6 @@ from gap_analysis import (
     top_missing_skills,
 )
 
-# ── page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Orbis · Job Intelligence",
     page_icon="◈",
@@ -29,7 +28,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── luxury CSS ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400&display=swap');
@@ -42,7 +40,6 @@ html, body, [data-testid="stAppViewContainer"],
     color: #E8D9B8 !important;
     font-family: 'Cormorant Garamond', Georgia, serif !important;
 }
-
 [data-testid="stSidebar"] { background: #0E0B07 !important; border-right: 1px solid #2A2218 !important; }
 [data-testid="stSidebarNav"] { display: none; }
 [data-testid="stHeader"] { background: transparent !important; }
@@ -50,8 +47,8 @@ html, body, [data-testid="stAppViewContainer"],
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: #080603; }
-::-webkit-scrollbar-thumb { background: #C9A84C44; border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: #C9A84C88; }
+::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.27); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.53); }
 
 .orbis-masthead {
     border-bottom: 1px solid #2A2218;
@@ -84,7 +81,7 @@ html, body, [data-testid="stAppViewContainer"],
     font-family: 'DM Mono', monospace;
     font-size: 0.6rem;
     letter-spacing: 0.2em;
-    color: #C9A84C88;
+    color: rgba(201,168,76,0.53);
     text-transform: uppercase;
     margin-top: 0.5rem;
 }
@@ -130,7 +127,7 @@ html, body, [data-testid="stAppViewContainer"],
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 1px;
-    background: linear-gradient(to right, transparent, #C9A84C44, transparent);
+    background: linear-gradient(to right, transparent, rgba(201,168,76,0.27), transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -193,7 +190,7 @@ html, body, [data-testid="stAppViewContainer"],
     transition: background 0.2s ease;
     animation: fadeUp 0.6s ease both;
 }
-.leaderboard-row:hover { background: #0E0B0744; }
+.leaderboard-row:hover { background: rgba(14,11,7,0.27); }
 .leaderboard-header { border-bottom: 1px solid #2A2218 !important; padding-bottom: 0.8rem !important; }
 .lb-rank { font-family: 'Cormorant Garamond', serif; font-size: 0.8rem; color: #3D3020; font-style: italic; padding-top: 0.1rem; }
 .lb-title { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: #D4C4A0; font-weight: 500; }
@@ -231,7 +228,7 @@ html, body, [data-testid="stAppViewContainer"],
     transition: all 0.2s ease;
     margin-top: 0.05rem;
 }
-.lb-apply:hover { background: #C9A84C11; border-color: #C9A84C44; color: #E8D9B8; }
+.lb-apply:hover { background: rgba(201,168,76,0.07); border-color: rgba(201,168,76,0.27); color: #E8D9B8; }
 
 .summary-grid {
     display: grid;
@@ -292,7 +289,6 @@ html, body, [data-testid="stAppViewContainer"],
 </style>
 """, unsafe_allow_html=True)
 
-# ── paths & constants ──────────────────────────────────────────────────────────
 DATA_PATH    = Path(__file__).parent.parent / "data" / "match_results.csv"
 SAMPLE_PATH  = Path(__file__).parent.parent / "data" / "sample_results.csv"
 PROFILE_PATH = Path(__file__).parent.parent / "candidate_profile.json"
@@ -349,7 +345,6 @@ def tier_class(tier: str) -> str:
     }.get(tier, "tier-low")
 
 
-# ── sidebar ────────────────────────────────────────────────────────────────────
 profile = load_profile()
 df_full = load_data()
 
@@ -387,7 +382,6 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-# ── filter ─────────────────────────────────────────────────────────────────────
 df = df_full.copy()
 if tier_filter:
     df = df[df["match_tier"].isin(tier_filter)]
@@ -398,7 +392,6 @@ df = df[df["match_score"] >= min_score]
 metrics = agent_performance_metrics(df)
 today   = datetime.now().strftime("%d %B %Y").upper()
 
-# ── masthead ───────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div class="orbis-masthead">
     <div>
@@ -413,7 +406,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── KPI row ────────────────────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Performance Overview</div>', unsafe_allow_html=True)
 st.markdown(f"""
 <div class="kpi-grid">
@@ -445,7 +437,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── chart row 1 ────────────────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Distribution Intelligence</div>', unsafe_allow_html=True)
 col1, col2 = st.columns([3, 2], gap="small")
 
@@ -461,12 +452,11 @@ with col1:
         marker_line_width=0.5, opacity=0.85,
         hovertemplate="Score: %{x:.0f}%<br>Count: %{y}<extra></extra>",
     ))
-    # compat: use add_shape + add_annotation instead of add_vline with annotation_font
     fig.add_shape(
         type="line",
         x0=metrics["avg_match_score"], x1=metrics["avg_match_score"],
         y0=0, y1=1, yref="paper",
-        line=dict(dash="dot", color="#C9A84C66", width=1),
+        line=dict(dash="dot", color="rgba(201,168,76,0.4)", width=1),
     )
     fig.add_annotation(
         x=metrics["avg_match_score"], y=0.95, yref="paper",
@@ -508,7 +498,6 @@ with col2:
     st.plotly_chart(fig2, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ── skill gap charts ───────────────────────────────────────────────────────────
 st.markdown('<div class="lux-divider"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-label">Skill Intelligence</div>', unsafe_allow_html=True)
 col3, col4 = st.columns(2, gap="small")
@@ -559,7 +548,6 @@ with col4:
         st.plotly_chart(fig4, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ── leaderboard ────────────────────────────────────────────────────────────────
 st.markdown('<div class="lux-divider"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-label">Position Leaderboard</div>', unsafe_allow_html=True)
 st.markdown("""
@@ -609,7 +597,6 @@ for i, row in df.head(20).iterrows():
     </div>
     """, unsafe_allow_html=True)
 
-# ── agent summary ──────────────────────────────────────────────────────────────
 st.markdown('<div class="lux-divider"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-label">Agent Intelligence Report</div>', unsafe_allow_html=True)
 st.markdown(f"""
@@ -632,7 +619,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── footer ──────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div style="margin-top:5rem;padding-top:2rem;border-top:1px solid #1A1510;
             display:flex;justify-content:space-between;align-items:center;">
