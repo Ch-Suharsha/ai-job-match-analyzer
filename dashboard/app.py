@@ -324,6 +324,11 @@ def _parse_list(val):
 def load_data() -> pd.DataFrame:
     path = DATA_PATH if DATA_PATH.exists() else SAMPLE_PATH
     df = pd.read_csv(path)
+    # Fix: CSV stores "True"/"False" as strings — convert to proper booleans
+    if "remote" in df.columns:
+        df["remote"] = df["remote"].map(
+            {"True": True, "False": False, True: True, False: False}
+        ).fillna(False)
     for col in ["job_skills_found", "matched_skills", "missing_skills"]:
         if col in df.columns:
             df[col] = df[col].apply(_parse_list)
