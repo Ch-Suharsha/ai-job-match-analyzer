@@ -1,6 +1,7 @@
 """
 dashboard/app.py — AI Job Match Quality Analyzer
 Luxury editorial design. Gold on obsidian. Playfair Display.
+cache_version: 3
 """
 
 import ast
@@ -85,7 +86,6 @@ html, body, [data-testid="stAppViewContainer"],
     text-transform: uppercase;
     margin-top: 0.5rem;
 }
-
 .section-label {
     font-family: 'DM Mono', monospace;
     font-size: 0.58rem;
@@ -104,7 +104,6 @@ html, body, [data-testid="stAppViewContainer"],
     height: 1px;
     background: linear-gradient(to right, #2A2218, transparent);
 }
-
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -156,7 +155,6 @@ html, body, [data-testid="stAppViewContainer"],
     margin-top: 0.6rem;
     letter-spacing: 0.1em;
 }
-
 .chart-panel {
     background: #0A0804;
     border: 1px solid #1E1810;
@@ -180,7 +178,6 @@ html, body, [data-testid="stAppViewContainer"],
     text-transform: uppercase;
     margin-bottom: 1.5rem;
 }
-
 .leaderboard-row {
     display: grid;
     grid-template-columns: 2.5rem 1fr 1fr 8rem 6rem 5rem;
@@ -229,7 +226,6 @@ html, body, [data-testid="stAppViewContainer"],
     margin-top: 0.05rem;
 }
 .lb-apply:hover { background: rgba(201,168,76,0.07); border-color: rgba(201,168,76,0.27); color: #E8D9B8; }
-
 .summary-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -243,12 +239,10 @@ html, body, [data-testid="stAppViewContainer"],
 .summary-value { font-family: 'Playfair Display', serif; font-size: 2rem; color: #C9A84C; font-weight: 400; margin-bottom: 0.5rem; }
 .summary-label { font-family: 'DM Mono', monospace; font-size: 0.55rem; letter-spacing: 0.2em; color: #6B5A3E; text-transform: uppercase; margin-bottom: 0.5rem; }
 .summary-caption { font-family: 'Cormorant Garamond', serif; font-size: 0.85rem; color: #3D3020; font-style: italic; line-height: 1.5; }
-
 .sidebar-logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: #E8D9B8; letter-spacing: 0.15em; margin-bottom: 0.3rem; }
 .sidebar-logo span { color: #C9A84C; font-style: italic; }
 .sidebar-label { font-family: 'DM Mono', monospace; font-size: 0.55rem; letter-spacing: 0.25em; color: #4A3D28; text-transform: uppercase; margin: 1.5rem 0 0.6rem 0; }
 .sidebar-value { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: #A89470; line-height: 1.6; }
-
 [data-testid="stSlider"] label,
 [data-testid="stCheckbox"] label,
 [data-testid="stMultiSelect"] label {
@@ -266,11 +260,9 @@ html, body, [data-testid="stAppViewContainer"],
     font-family: 'DM Mono', monospace !important;
     font-size: 0.7rem !important;
 }
-
 #MainMenu, footer, header { visibility: hidden; }
 [data-testid="stDecoration"] { display: none; }
 [data-testid="collapsedControl"] { color: #4A3D28 !important; }
-
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -280,7 +272,6 @@ html, body, [data-testid="stAppViewContainer"],
 .delay-3 { animation-delay: 0.15s; }
 .delay-4 { animation-delay: 0.20s; }
 .delay-5 { animation-delay: 0.25s; }
-
 .lux-divider {
     height: 1px;
     background: linear-gradient(to right, transparent, #2A2218 30%, #2A2218 70%, transparent);
@@ -313,6 +304,7 @@ BLUE  = "#5A7A9A"
 RUST  = "#9A5A3A"
 RED   = "#8A3A3A"
 
+# cache_version = 3  # bump to force cache clear on Streamlit Cloud
 
 def _parse_list(val):
     if isinstance(val, list): return val
@@ -320,22 +312,29 @@ def _parse_list(val):
     except: return []
 
 
-@st.cache_data
-def load_data() -> pd.DataFrame:
+@st.cache_data(show_spinner=False)
+def load_data(_version: int = 3) -> pd.DataFrame:
+    """Load and clean the match results CSV. _version param forces cache invalidation."""
     path = DATA_PATH if DATA_PATH.exists() else SAMPLE_PATH
     df = pd.read_csv(path)
-    # Fix: CSV stores "True"/"False" as strings — convert to proper booleans
+    # Fix string booleans from CSV
     if "remote" in df.columns:
-        df["remote"] = df["remote"].map(
-            {"True": True, "False": False, True: True, False: False}
-        ).fillna(False)
+        df["remote"] = df["remote"].astype(str).str.strip().map(
+            {"True": True, "False": False, "true": True, "false": False, "1": True, "0": False}
+        ).fillna(False).astype(bool)
+    # Fix numeric columns
+    if "match_score" in df.columns:
+        df["match_score"] = pd.to_numeric(df["match_score"], errors="coerce").fillna(0)
+    if "match_pct_skills" in df.columns:
+        df["match_pct_skills"] = pd.to_numeric(df["match_pct_skills"], errors="coerce").fillna(0)
+    # Parse list columns
     for col in ["job_skills_found", "matched_skills", "missing_skills"]:
         if col in df.columns:
             df[col] = df[col].apply(_parse_list)
     return df
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_profile() -> dict:
     with open(PROFILE_PATH) as f:
         return json.load(f)
@@ -351,7 +350,7 @@ def tier_class(tier: str) -> str:
 
 
 profile = load_profile()
-df_full = load_data()
+df_full = load_data(_version=3)
 
 with st.sidebar:
     st.markdown(f"""
@@ -449,7 +448,6 @@ with col1:
     st.markdown('<div class="chart-panel">', unsafe_allow_html=True)
     st.markdown('<div class="chart-title">Match Score Distribution</div>', unsafe_allow_html=True)
     st.markdown('<div class="chart-caption">Semantic similarity across all analysed positions</div>', unsafe_allow_html=True)
-
     fig = go.Figure()
     fig.add_trace(go.Histogram(
         x=df["match_score"], nbinsx=20,
@@ -481,11 +479,9 @@ with col2:
     st.markdown('<div class="chart-panel">', unsafe_allow_html=True)
     st.markdown('<div class="chart-title">Tier Composition</div>', unsafe_allow_html=True)
     st.markdown('<div class="chart-caption">Quality tier breakdown</div>', unsafe_allow_html=True)
-
     tier_df = tier_distribution(df)
     tier_colors = {"Strong Match": GREEN, "Good Match": BLUE, "Partial Match": RUST, "Low Match": RED}
     colors = [tier_colors.get(t, GOLD) for t in tier_df["tier"]]
-
     fig2 = go.Figure(go.Bar(
         x=tier_df["count"], y=tier_df["tier"],
         orientation="h",
@@ -517,8 +513,7 @@ with col3:
         fig3 = go.Figure(go.Bar(
             x=mdf["job_count"], y=mdf["skill"], orientation="h",
             marker=dict(color=mdf["job_count"],
-                        colorscale=[[0,"#2A1A1A"],[0.5,AMBER],[1.0,GOLD]],
-                        line_width=0),
+                        colorscale=[[0,"#2A1A1A"],[0.5,AMBER],[1.0,GOLD]], line_width=0),
             opacity=0.95,
             hovertemplate="%{y}<br>%{x} positions<extra></extra>",
         ))
@@ -540,8 +535,7 @@ with col4:
         fig4 = go.Figure(go.Bar(
             x=mdf2["job_count"], y=mdf2["skill"], orientation="h",
             marker=dict(color=mdf2["job_count"],
-                        colorscale=[[0,"#1A2A1A"],[0.5,"#4A7A4A"],[1.0,"#7ABE7A"]],
-                        line_width=0),
+                        colorscale=[[0,"#1A2A1A"],[0.5,"#4A7A4A"],[1.0,"#7ABE7A"]], line_width=0),
             opacity=0.95,
             hovertemplate="%{y}<br>%{x} positions<extra></extra>",
         ))
@@ -584,7 +578,6 @@ for i, row in df.head(20).iterrows():
     remote_label = "Remote" if row["remote"] else (loc.split(",")[0] if "," in loc else loc)
     delay = delays[min(rank - 1, 4)]
     apply_link = str(row.get("apply_url","#") or "#")
-
     st.markdown(f"""
     <div class="leaderboard-row {delay}">
         <div class="lb-rank">{rank:02d}</div>
